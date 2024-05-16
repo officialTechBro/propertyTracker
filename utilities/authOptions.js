@@ -1,6 +1,8 @@
-import GithubProvider from "next-auth/providers/google"
+import dbConnect from '@/config/database'
+import User from '@/models/User'
+import GoogleProvider from 'next-auth/providers/google'
 
-export const authOpations = {
+export const authOptions = {
     providers: [
         GoogleProvider({
           clientId: process.env.GOOGLE_CLIENT_ID,
@@ -17,15 +19,31 @@ export const authOpations = {
       callbacks: {
         // Invoke on succesful signin
         async signIn({ profile }) {
-        //   if (account.provider === "google") {
-        //     return profile.email_verified && profile.email.endsWith("@example.com")
-        //   }
-        //   return true // Do different verification for other providers that don't have `email_verified`
+          // 1. connect to database
+          await dbConnect()
+          // 2. check if user exists
+          const isUser = await User.findOne({email:profile.email})
+          // 3. if not, then add user to database
+          if (!isUser) {
+            const username = profile.name.slice(0, 20)
+            await User.create({
+              email: profile.email,
+              username,
+              image: profile.picture
+            })
+          }
+          // 4. return true to allow sign in
+          return true
         },
 
         // Modifies the session object
         async session({session}) {
-
+          // 1. get user from database
+          const user =  await User.findOne({email: session.user.email})
+          // 2. assign user id to a the session
+          session.user.id = user._id.toString()
+          // 3. return the session
+          return session
         }
       }
 }

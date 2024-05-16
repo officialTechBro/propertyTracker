@@ -1,7 +1,7 @@
 import '@/assets/styles/globals.css'
 import Footer from '@/components/Footer'
 import Navbar from '@/components/Navbar'
-
+import AuthProvider from '@/components/authProvider'
 
 export const metadata = {
     title: 'Modern Property | Buy and Rent Properties',
@@ -11,13 +11,16 @@ export const metadata = {
 
 const MainLayout = ({children}) => {
   return (
-    <html lang="en">
+    <AuthProvider>
+        <html lang="en">
         <body>
           <Navbar />
           <div>{children}</div>
           <Footer />
         </body>
     </html>
+    </AuthProvider>
+    
   )
 }
 
